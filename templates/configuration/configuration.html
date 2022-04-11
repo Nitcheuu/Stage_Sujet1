@@ -1,0 +1,122 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html style="font-size: 16px;">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="keywords" content="Générateur de chaîne de Markov, Choisissez vos fichiers">
+    <meta name="description" content="">
+    <meta name="page_type" content="np-template-header-footer-from-plugin">
+    <title>Configuration</title>
+    <link rel="stylesheet" href="{% static 'css/nicepage.css' %}" media="screen">
+    <link rel="stylesheet" href="{% static 'css/configuration.css' %}" media="screen">
+    <script class="u-script" type="text/javascript" src="{% static 'js/jquery.js' %}" defer=""></script>
+    <script class="u-script" type="text/javascript" src="{% static 'js/nicepage.js' %}" defer=""></script>
+    <meta name="generator" content="Nicepage 4.8.2, nicepage.com">
+    <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i|Open+Sans:300,300i,400,400i,500,500i,600,600i,700,700i,800,800i">
+    <link id="u-page-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i">
+
+
+    <script type="application/ld+json">{
+		"@context": "http://schema.org",
+		"@type": "Organization",
+		"name": "",
+		"logo": "{% static 'images/logoLTI.png' %}"
+}</script>
+    <meta name="theme-color" content="#478ac9">
+    <meta property="og:title" content="index">
+    <meta property="og:type" content="website">
+  </head>
+  <body data-home-page="index.html" data-home-page-title="index" class="u-body u-xl-mode"><header class="u-border-1 u-border-no-left u-border-no-right u-border-no-top u-border-palette-4-light-2 u-clearfix u-header u-palette-4-light-3 u-header" id="sec-8608"><div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+        <a href="#" class="u-image u-logo u-image-1" data-image-width="393" data-image-height="157">
+          <img src="{% static 'images/logoLTI.png' %}" class="u-logo-image u-logo-image-1">
+        </a>
+
+        {% include 'base/navbar.html' %}
+
+      </div></header>
+    <section class="u-clearfix u-white u-section-1" id="sec-fa09", style="padding-top: 170px;padding-bottom: 200px;">
+      <div class="u-clearfix u-sheet u-sheet-1">
+        <h1 class="u-align-center u-custom-font u-font-raleway u-text u-text-default u-text-1">Interpreteur de chaîne de Markov</h1>
+        <div class="u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
+          <div class="u-layout">
+            <div class="u-layout-row">
+              <div class="u-container-style u-layout-cell u-opacity u-opacity-25 u-size-30 u-white u-layout-cell-1">
+                <div class="u-border-2 u-border-grey-75 u-border-no-bottom u-border-no-left u-border-no-right u-container-layout u-valign-middle u-container-layout-1">
+                  <img class="u-align-center u-image u-image-default u-image-1" src="{% static 'images/markov_logo.png' %}" alt="" data-image-width="486" data-image-height="130">
+                </div>
+              </div>
+              <div class="u-container-style u-layout-cell u-opacity u-opacity-10 u-palette-4-light-3 u-shape-rectangle u-size-30 u-layout-cell-2">
+                <div class="u-border-2 u-border-grey-75 u-border-no-bottom u-border-no-left u-border-no-right u-container-layout u-container-layout-2">
+                  <h1 class="u-align-center u-custom-font u-font-raleway u-text u-text-2">Choisissez vos fichiers</h1>
+                  <h6 class="u-align-center u-custom-font u-font-raleway u-text u-text-3">(Excel et csv uniquement)</h6>
+                  <form method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                    <div id="drop-area-A">
+                      <br><br><p class="u-text u-text-2">Matrice de transition *</p>
+                      <input id="input_A" type="file" name="input_A" accept=".xlsx, .csv">
+                        {% if uploads.0 == False %}
+                          <p class="u-text u-text-2" style="color:red;">Veuillez renseigner la matrice de transition</p>
+                        {% endif %}
+                    </div>
+                    <br><br><p class="u-text u-text-2">Matrice des moyennes et variances</p>
+                    <input type="file" name="input_B" accept=".xlsx, .csv">
+                    {% if uploads.1 == False %}
+                      <p class="u-text u-text-2" style="color:red;">Veuillez renseigner la matrice des moyennes et variances</p>
+                    {% endif %}
+
+                    <br><br><button id="bouton_1"  type="submit">Envoyer</button>
+
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    {% include 'base/footer.html' %}
+
+
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+  <script>
+    let selectedFile;
+    console.log(window.XLSX);
+    document.getElementById('input_A').addEventListener("change", (event) => {
+        selectedFile = event.target.files[0];
+        if(selectedFile){
+        let fileReader = new FileReader();
+        fileReader.readAsBinaryString(selectedFile);
+        fileReader.onload = (event)=>{
+         let data = event.target.result;
+         let workbook = XLSX.read(data,{type:"binary"});
+         console.log(workbook);
+         let rowObject;
+         workbook.SheetNames.forEach(sheet => {
+              rowObject = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheet]);
+              console.log(rowObject);
+              //document.getElementById("jsondata").innerHTML = JSON.stringify(rowObject,undefined,4)
+         });
+         console.log(rowObject.length)
+         rowObject.forEach(
+
+         )
+
+        }
+    }
+    })
+
+    let data;
+
+    document.getElementById('bouton_1').addEventListener("click", () => {
+    //XLSX.utils.json_to_sheet(data, 'out.xlsx');
+
+});
+
+  </script>
+
+</html>
